@@ -34,6 +34,12 @@ async def get_public_id():
         return None
 
 
+def read_config_file(config_filename):
+
+    config_file = open(config_filename, "r")
+    return json.loads(config_file.read())
+
+
 async def open_firewall(
     firewall_rule_name: str, ip_address: str, sql_server_info: SqlServerInfo
 ):
@@ -54,7 +60,9 @@ async def open_firewall(
     stdout, stderr = await open_firewall_process.communicate()
 
     if open_firewall_process.returncode == 0:
-        print(f"...Firewall for server {sql_server_info.sql_server_name} now is open")
+        print(
+            f"...Firewall for server {sql_server_info.sql_server_name} now is open with name {firewall_rule_name}"
+        )
     else:
         print(f"Error opening firewall for server {sql_server_info.sql_server_name}:")
         print(f"{stderr.decode()}")
@@ -145,89 +153,87 @@ async def firewall_status(
     return firewall_list_process.returncode, stdout, stderr
 
 
-async def command_open_firewall(sql_server_list_filename, firewall_rule_name):
+async def command_open_firewall(config, firewall_rule_name):
 
     ip_address = await get_public_id()
 
     if not ip_address:
         sys.exit(4)
 
-    with open(sql_server_list_filename, "r") as sql_server_list_file:
+    tasks = []
 
-        sql_server_list = json.loads(sql_server_list_file.read())
-
-        tasks = []
-
-        for sql_server_info in sql_server_list:
-            tasks.append(
-                open_firewall(
-                    firewall_rule_name=firewall_rule_name,
-                    ip_address=ip_address,
-                    sql_server_info=SqlServerInfo(sql_server_info),
-                )
+    for sql_server_info in config["server_list"]:
+        tasks.append(
+            open_firewall(
+                firewall_rule_name=firewall_rule_name,
+                ip_address=ip_address,
+                sql_server_info=SqlServerInfo(sql_server_info),
             )
+        )
 
-        await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
 
-async def command_close_firewall(sql_server_list_filename, firewall_rule_name):
+async def command_close_firewall(config, firewall_rule_name):
     ip_address = await get_public_id()
 
     if not ip_address:
         sys.exit(4)
 
-    with open(sql_server_list_filename, "r") as sql_server_list_file:
+    tasks = []
 
-        sql_server_list = json.loads(sql_server_list_file.read())
-
-        tasks = []
-
-        for sql_server_info in sql_server_list:
-            tasks.append(
-                close_firewall(
-                    firewall_rule_name=firewall_rule_name,
-                    ip_address=ip_address,
-                    sql_server_info=SqlServerInfo(sql_server_info),
-                )
+    for sql_server_info in config["server_list"]:
+        tasks.append(
+            close_firewall(
+                firewall_rule_name=firewall_rule_name,
+                ip_address=ip_address,
+                sql_server_info=SqlServerInfo(sql_server_info),
             )
+        )
 
-        await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
 
-async def command_firewall_status(sql_server_list_filename, firewall_rule_name):
+async def command_firewall_status(config, firewall_rule_name):
 
     ip_address = await get_public_id()
 
     if not ip_address:
         sys.exit(4)
 
-    with open(sql_server_list_filename, "r") as sql_server_list_file:
+    tasks = []
 
-        sql_server_list = json.loads(sql_server_list_file.read())
-
-        tasks = []
-
-        for sql_server_info in sql_server_list:
-            tasks.append(
-                firewall_status(
-                    firewall_rule_name=firewall_rule_name,
-                    ip_address=ip_address,
-                    sql_server_info=SqlServerInfo(sql_server_info),
-                )
+    for sql_server_info in config["server_list"]:
+        tasks.append(
+            firewall_status(
+                firewall_rule_name=firewall_rule_name,
+                ip_address=ip_address,
+                sql_server_info=SqlServerInfo(sql_server_info),
             )
+        )
 
-        await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
 
 async def main(sql_server_list_filename):
 
-    parser = argparse.ArgumentParser(description="Manage firewall settings.")
+    parser = argparse.ArgumentParser(
+        description=f"""Manage firewall settings. Server list is read from config file"""
+    )
     parser.add_argument(
         "-n",
         "--name",
         required=True,
         type=str,
         help="Name of the firewall rule to add/remove",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--config_filename",
+        type=str,
+        help="Filename of the config file (see config-example.json for example)",
+        default="config.json",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
@@ -247,7 +253,9 @@ async def main(sql_server_list_filename):
     args = parser.parse_args()
 
     if args.command:
-        await args.func(sql_server_list_filename, args.name)
+        config = read_config_file(args.config_filename)
+
+        await args.func(config, args.name)
     else:
         parser.print_help()
 

@@ -1,0 +1,14 @@
+{
+    "server_list": [
+        {
+            "subscription": "2f76335b-ba94-4010-9907-83131714f214",
+            "resource_group": "resourcegroupname1",
+            "sql_server_name": "sqlservername1"
+        },
+        {
+            "subscription": "34351747-8832-408f-8481-5714a13398c0",
+            "resource_group": "resourcegroupname2",
+            "sql_server_name": "sqlservername2"
+        }
+    ]
+}
