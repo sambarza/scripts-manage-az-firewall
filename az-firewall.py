@@ -31,7 +31,8 @@ async def get_public_id():
     else:
         print(f"cannot get the public is address:")
         print(f"{stderr.decode()}")
-        return None
+
+        sys.exit(4)
 
 
 def read_config_file(config_filename):
@@ -153,12 +154,7 @@ async def firewall_status(
     return firewall_list_process.returncode, stdout, stderr
 
 
-async def command_open_firewall(config, firewall_rule_name):
-
-    ip_address = await get_public_id()
-
-    if not ip_address:
-        sys.exit(4)
+async def command_open_firewall(config, firewall_rule_name, ip_address):
 
     tasks = []
 
@@ -174,11 +170,7 @@ async def command_open_firewall(config, firewall_rule_name):
     await asyncio.gather(*tasks)
 
 
-async def command_close_firewall(config, firewall_rule_name):
-    ip_address = await get_public_id()
-
-    if not ip_address:
-        sys.exit(4)
+async def command_close_firewall(config, firewall_rule_name, ip_address):
 
     tasks = []
 
@@ -194,12 +186,7 @@ async def command_close_firewall(config, firewall_rule_name):
     await asyncio.gather(*tasks)
 
 
-async def command_firewall_status(config, firewall_rule_name):
-
-    ip_address = await get_public_id()
-
-    if not ip_address:
-        sys.exit(4)
+async def command_firewall_status(config, firewall_rule_name, ip_address):
 
     tasks = []
 
@@ -253,9 +240,10 @@ async def main():
     args = parser.parse_args()
 
     if args.command:
+        ip_address = await get_public_id()
         config = read_config_file(args.config_filename)
 
-        await args.func(config, args.name)
+        await args.func(config, args.name, ip_address)
     else:
         parser.print_help()
 
