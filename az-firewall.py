@@ -215,7 +215,7 @@ async def command_firewall_status(config, firewall_rule_name):
     await asyncio.gather(*tasks)
 
 
-async def main(sql_server_list_filename):
+async def main():
 
     parser = argparse.ArgumentParser(
         description=f"""Manage firewall settings. Server list is read from config file"""
@@ -260,4 +260,4 @@ async def main(sql_server_list_filename):
         parser.print_help()
 
 
-asyncio.run(main("sql_server_list.json"))
+asyncio.run(main())
