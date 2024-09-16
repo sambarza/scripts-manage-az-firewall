@@ -1,4 +1,4 @@
-This script can be used check the status, open and close azure sql server firewall rules
+This script can be used check to the status, open and close azure sql server firewall rules
 
 Configuration:
 - create a `config.json` file with the list of sql server to manage, look to the `config-example.json` file as example
