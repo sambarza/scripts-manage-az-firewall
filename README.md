@@ -8,6 +8,6 @@ Instruction:
 - `python az-firewall.py -h` to show the commands
 
 Example:
-Status for firewall rule ´rule_name´: `python az-firewall.py -n rule_name status`
-Open for firewall with rule ´rule_name´: `python az-firewall.py -n rule_name open`
-Close for firewall with rule ´rule_name´: `python az-firewall.py -n rule_name close`
+- Status for firewall rule ´rule_name´: `python az-firewall.py -n rule_name status`
+- Open for firewall with rule ´rule_name´: `python az-firewall.py -n rule_name open`
+- Close for firewall with rule ´rule_name´: `python az-firewall.py -n rule_name close`
